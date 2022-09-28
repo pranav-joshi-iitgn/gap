@@ -917,7 +917,7 @@ InstallMethod( ImagesRepresentative,
 
 #############################################################################
 ##
-#M  PreImagesRepresentativeNC( <ophom>, <mat> )
+#M  PreImagesRepresentativeOperationAlgebraHomomorphism( <ophom>, <mat> )
 ##
 BindGlobal( "PreImagesRepresentativeOperationAlgebraHomomorphism", function( ophom, mat )
     if not IsBound( ophom!.basisImage ) then

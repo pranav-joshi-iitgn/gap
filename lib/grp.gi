@@ -10,7 +10,7 @@
 ##
 ##  This file contains generic methods for groups.
 ##
-
+## (24/09/23) attempting to resolve conflicts (CDW) 
 
 #############################################################################
 ##
@@ -483,10 +483,10 @@ local p, hom, reps, a, b, ap_bp, ab_p, H;
   reps := ConjugacyClasses(Image(hom));
   reps := List(reps, Representative);
   reps := Filtered(reps, g -> not IsOne(g));
-  reps := List(reps, g -> PreImagesRepresentative(hom, g));
+  reps := List(reps, g -> PreImagesRepresentativeNC(hom, g));
 
   for b in Image(hom) do
-    b := PreImagesRepresentative(hom, b);
+    b := PreImagesRepresentativeNC(hom, b);
     for a in reps do
       # if a and b commute the regularity condition automatically holds
       if a*b = b*a then continue; fi;
@@ -5294,7 +5294,7 @@ InstallMethod (MinimalNormalSubgroups,
    function( grp )
       local hom;
       hom := NiceMonomorphism (grp);
-      return List (MinimalNormalSubgroups (NiceObject (grp)), 
+      return List (MinimalNormalSubgroups (NiceObject (grp)),
         N -> PreImagesSetNC(hom, N));
    end);
 

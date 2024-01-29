@@ -1226,10 +1226,7 @@ local orderext, bas, baslte, fam, t, B, i, j, s;
         Info(InfoGroebner,1,"|bas|=",t,", ",Length(B)," pairs left");
       fi;
     # remove first entry of B
-    for j in [2..Length(B)] do
-      B[j-1]:=B[j];
-    od;
-    Unbind(B[Length(B)]);
+    Remove(B,1);
   od;
   return bas;
 end);
@@ -1282,7 +1279,7 @@ local ord,b,ind,num,c,corners,i,j,a,rem,bound,mon,n,monb,dim,sc,k,l,char,hom;
       Add(corners,a); # extra corner
     fi;
   od;
-  if not ForAll(bound,x->IsInt(x)) then
+  if not ForAll(bound,IsInt) then
     Info(InfoWarning,1,"quotient ring has infinite dimension");
     TryNextMethod();
   fi;

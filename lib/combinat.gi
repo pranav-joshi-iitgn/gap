@@ -454,13 +454,13 @@ BindGlobal( "NrCombinationsX", function ( mset, k )
     return nrs;
 end );
 
-BindGlobal( "NrCombinationsSetA", function ( set, k )
+BindGlobal( "NrCombinationsSetA", function ( set )
     local  nr;
     nr := 2 ^ Size(set);
     return nr;
 end );
 
-BindGlobal( "NrCombinationsMSetA", function ( mset, k )
+BindGlobal( "NrCombinationsMSetA", function ( mset )
     local  nr;
     nr := Product( Set(mset), i->Number(mset,j->i=j)+1 );
     return nr;
@@ -491,9 +491,9 @@ InstallGlobalFunction(NrCombinations,function ( mset, arg... )
     mset := ShallowCopy(mset);  Sort( mset );
     if Length(arg) = 0  then
         if IsSSortedList( mset )  then
-            nr := NrCombinationsSetA( mset, Length(mset) );
+            nr := NrCombinationsSetA( mset );
         else
-            nr := NrCombinationsMSetA( mset, Length(mset) );
+            nr := NrCombinationsMSetA( mset );
         fi;
     elif Length(arg) = 1  then
         if IsSSortedList( mset )  then
@@ -579,11 +579,10 @@ end );
 InstallGlobalFunction(Arrangements,function ( mset, arg... )
     local   combs, m;
     mset := ShallowCopy(mset);  Sort( mset );
+    m := List( mset, ReturnTrue );
     if Length(arg) = 0  then
-        m := List( mset, i->true );
         combs := ArrangementsA( mset, m, Length(mset), [], 1 );
     elif Length(arg) = 1  then
-        m := List( mset, i->true );
         combs := ArrangementsK( mset, m, Length(mset), arg[1], [], 1 );
     else
         Error("usage: Arrangements( <mset> [, <k>] )");
@@ -649,7 +648,7 @@ BindGlobal( "NrArrangementsX", function ( mset, k )
     return nrs;
 end );
 
-BindGlobal( "NrArrangementsSetA", function ( set, k )
+BindGlobal( "NrArrangementsSetA", function ( set )
     local  nr, i;
     nr := 0;
     for i  in [0..Size(set)]  do
@@ -689,7 +688,7 @@ InstallGlobalFunction(NrArrangements,function ( mset, arg... )
     mset := ShallowCopy(mset);  Sort( mset );
     if Length(arg) = 0  then
         if IsSSortedList( mset )  then
-            nr := NrArrangementsSetA( mset, Length(mset) );
+            nr := NrArrangementsSetA( mset );
         else
             nr := NrArrangementsMSetA( mset, Length(mset) );
         fi;
@@ -1162,7 +1161,7 @@ end );
 InstallGlobalFunction(PermutationsList,function ( mset )
     local   m;
     mset := ShallowCopy(mset);  Sort( mset );
-    m := List( mset, i->true );
+    m := List( mset, ReturnTrue );
     return PermutationsListK(mset,m,Length(mset),Length(mset),[],1);
 end);
 
@@ -1222,7 +1221,7 @@ end );
 InstallGlobalFunction(Derangements,function ( list )
     local   mset, m;
     mset := ShallowCopy(list);  Sort( mset );
-    m := List( mset, i->true );
+    m := List( mset, ReturnTrue );
     return DerangementsK(mset,m,Length(mset),list,Length(mset),[],1);
 end);
 
@@ -1271,7 +1270,7 @@ InstallGlobalFunction(NrDerangements,function ( list )
             od;
         fi;
     else
-        m := List( mset, i->true );
+        m := List( mset, ReturnTrue );
         nr := NrDerangementsK(mset,m,Length(mset),list,Length(mset),1);
     fi;
     return nr;
@@ -1416,7 +1415,7 @@ InstallGlobalFunction(PartitionsSet,function ( set, arg... )
         if set = []  then
             parts := [ [  ] ];
         else
-            m := List( set, i->true );
+            m := List( set, ReturnTrue );
             m[1] := false;
             parts := PartitionsSetA(set,Length(set),m,2,[[set[1]]],1,1);
         fi;
@@ -1429,7 +1428,7 @@ InstallGlobalFunction(PartitionsSet,function ( set, arg... )
                 parts := [ ];
             fi;
         else
-            m := List( set, i->true );
+            m := List( set, ReturnTrue );
             m[1] := false;
             parts := PartitionsSetK(
                         set, Length(set), m, 2, k, [[set[1]]], 1, 1 );

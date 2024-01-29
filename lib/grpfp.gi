@@ -2070,7 +2070,7 @@ local ind,q,is;
   ind:=List(l,IndexInWholeGroup);
   Print("Found ",Length(l)," subgroups, core indices:\n",Collected(ind),"\n");
   l:=List(Set(ind),y->Filtered(l,x->IndexInWholeGroup(x)=y));
-  l:=List(l,x->Intersection(x));
+  l:=List(l,Intersection);
   SortBy(l,IndexInWholeGroup);
   if Length(l)=1 then
     is:=l[1];
@@ -2955,7 +2955,7 @@ j, ok, b,k,tr;
   tr:=[2*m,2*m-1..1];
 
   while Length(ts)>0 do
-    s:=ts[Length(ts)];
+    s:=Remove(ts);
     t:=s[1];
     n:=s[2];
     i:=s[3];
@@ -2965,7 +2965,6 @@ j, ok, b,k,tr;
       sj:=sj+1;
     fi;
     j:=sj;
-    Unbind(ts[Length(ts)]);
 
     # find first open entry
     ok:=true;
@@ -4776,7 +4775,7 @@ local g,i,x;
     fi;
     # free cancellation
     if Length(g)>0 and x=-g[Length(g)] then
-      Unbind(g[Length(g)]);
+      Remove(g);
     else
       Add(g,x);
     fi;
@@ -5525,9 +5524,10 @@ local GO,q,d,e,b,r,val,agemo,ngens;
   ngens:=32;
   repeat
     ngens:=ngens*8;
-    q:=PQuotient(G,p,2,ngens);
+    q:=PQuotient(G,p,2,ngens:noninteractive);
   until q<>fail;
   q:=Image(EpimorphismQuotientSystem(q));
+  # factor out G^p
   q:=ShallowCopy(PCentralSeries(q,p));
   if Length(q)=1 then
     Error("Trivial <p> quotient");
@@ -5535,9 +5535,12 @@ local GO,q,d,e,b,r,val,agemo,ngens;
   if Length(q)=2 then
     Add(q,q[2]); # maximal quotient is abelian, second term is trivial
   fi;
+
   d:=LogInt(Index(q[1],q[2]),p);
 
   if p=2 then
+    # This case is taken from the book by Johnson, as Newman's paper only
+    # treats odd n.
     e:=LogInt(Index(q[2],q[3]),p);
     Info(InfoFpGroup,1,b," generators, ",r," relators, p=",p,", d=",d," e=",e);
     q:=r-b+d;

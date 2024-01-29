@@ -184,7 +184,6 @@ static Obj RemPlist(Obj list)
 static Obj RemListOper;
 
 static Obj FuncREM_LIST(Obj self, Obj list)
-
 {
     // dispatch
     if ( IS_PLIST( list ) ) {
@@ -196,7 +195,6 @@ static Obj FuncREM_LIST(Obj self, Obj list)
     else {
         return DoOperation1Args( self, list);
     }
-
 }
 
 
@@ -1530,15 +1528,13 @@ static Int InitKernel (
     StructInitInfo *    module )
 {
     // init filters and functions
-    /* ADD_LIST needs special consideration because we want distinct kernel
-       handlers for 2 and 3 arguments */
-    InitHandlerFunc( FuncADD_LIST, "src/listfunc.c:FuncADD_LIST" );
-    InitHandlerFunc( FuncADD_LIST3, "src/listfunc.c:FuncADD_LIST3" );
-
     InitHdlrOpersFromTable( GVarOpers );
     InitHdlrFuncsFromTable( GVarFuncs );
 
-
+    // ADD_LIST needs special consideration because we want distinct kernel
+    // handlers for 2 and 3 arguments
+    InitHandlerFunc( FuncADD_LIST, "src/listfunc.c:FuncADD_LIST" );
+    InitHandlerFunc( FuncADD_LIST3, "src/listfunc.c:FuncADD_LIST3" );
 
     return 0;
 }

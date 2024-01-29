@@ -193,7 +193,7 @@ local gens, inn,out, nonperm, syno, orb, orbi, perms, free, rep, i, maxl, gen,
   nonperm:=Filtered(out,i->not IsConjugatorAutomorphism(i));
   syno:=g;
   #syno:=Group(List(Filtered(GeneratorsOfGroup(au),IsInnerAutomorphism),
-#        x->ConjugatorOfConjugatorIsomorphism(x)),One(g));
+#        ConjugatorOfConjugatorIsomorphism),One(g));
   for i in Filtered(out,IsConjugatorAutomorphism) do
     syno:=ClosureGroup(syno,ConjugatorOfConjugatorIsomorphism(i));
   od;
@@ -1146,9 +1146,7 @@ local i,j,flag,cl;
   od;
 
   # sort classes by size
-  Sort(cl,function(a,b) return
-    Sum(a,i->i.size)
-      <Sum(b,i->i.size);end);
+  SortBy(cl,a->Sum(a,i->i.size));
   return cl;
 end);
 
@@ -1394,7 +1392,7 @@ local id,result,rig,dom,tall,tsur,tinj,thom,gens,free,rels,len,ind,cla,m,
     od;
     # now sort by the length of the relators
     for i in [1..len] do
-      Sort(sortrels[i],function(x,y) return x[3]<y[3];end);
+      SortBy(sortrels[i],x->x[3]);
     od;
     if Length(pows)>0 then
       offset:=1-Minimum(List(Filtered(pows,i->Length(i)>0),
@@ -1768,7 +1766,7 @@ local combi,Gr,Gcl,Ggc,Hr,Hcl,bg,bpri,x,dat,
       Ggc:=List(gens,i->First(Gcl,j->ForAny(j,j->ForAny(j.classes,k->i in k))));
       combi:=List(Ggc,i->Concatenation(List(i,i->i.classes)));
       bcl:=ShallowCopy(combi);
-      Sort(bcl,function(a,b) return Sum(a,Size)<Sum(b,Size);end);
+      SortBy(bcl,a->Sum(a,Size));
       bg:=gens;
       bpri:=Product(combi,i->Sum(i,Size));
       for i in [1..7*Length(gens)-12] do
@@ -1786,7 +1784,7 @@ local combi,Gr,Gcl,Ggc,Hr,Hcl,bg,bpri,x,dat,
                   j->ForAny(j,j->ForAny(j.classes,k->i in k))));
         combi:=List(Ggc,i->Concatenation(List(i,i->i.classes)));
         Append(bcl,combi);
-        Sort(bcl,function(a,b) return Sum(a,Size)<Sum(b,Size);end);
+        SortBy(bcl,a->Sum(a,Size));
         price:=Product(combi,i->Sum(i,Size));
         Info(InfoMorph,3,"generating system of price:",price,"");
         if price<bpri then
@@ -2061,8 +2059,8 @@ local o,p,gens,hens;
   hens:=IndependentGeneratorsOfAbelianGroup(H);
   hens:=ShallowCopy(hens);
 
-  o:=List(gens,i->Order(i));
-  p:=List(hens,i->Order(i));
+  o:=List(gens,Order);
+  p:=List(hens,Order);
 
   SortParallel(o,gens);
   SortParallel(p,hens);
@@ -2818,6 +2816,65 @@ local d,iso,a,b,c,o,s,two,rt,r,z,e,y,re,m,gens,cnt,lim,p,
 end);
 
 
+BindGlobal("IsomorphismPGroups",function(G,H)
+local s,p,eG,eH,fG,fH,pc,imgs,pre,post;
+  s:=Size(G);
+  if Size(H)<>s then return fail;fi;
+  p:=Collected(Factors(s));
+  if Length(p)>1 then TryNextMethod();fi;
+  p:=p[1][1];
+  if IsFpGroup(G) then
+    pre:=fail;
+  else
+    pre:=IsomorphismFpGroup(G);
+    G:=Image(pre,G);
+  fi;
+
+  if IsFpGroup(H) then
+    post:=fail;
+  else
+    post:=IsomorphismFpGroup(H);
+    H:=Image(post,H);
+  fi;
+
+
+  eG:=CallFuncList(ValueGlobal("EpimorphismPqStandardPresentation"),[G]:
+    Prime:=p);
+  eH:=CallFuncList(ValueGlobal("EpimorphismPqStandardPresentation"),[H]:
+    Prime:=p);
+
+  # check presentations
+  fG:=Range(eG);
+  fH:=Range(eH);
+  if List(RelatorsOfFpGroup(fG),
+    x->MappedWord(x,FreeGeneratorsOfFpGroup(fG),FreeGeneratorsOfFpGroup(fH)))
+      <>RelatorsOfFpGroup(fH) then
+    return fail;
+  fi;
+
+  # move to pc pres
+  pc:=PcGroupFpGroup(fG);
+
+  # new maps to pc
+  imgs:=List(MappingGeneratorsImages(eG)[2],
+    x->MappedWord(UnderlyingElement(x),
+      FreeGeneratorsOfFpGroup(fG),GeneratorsOfGroup(pc)));
+
+  eG:=GroupHomomorphismByImages(G,pc,MappingGeneratorsImages(eG)[1],imgs);
+
+  imgs:=List(MappingGeneratorsImages(eH)[2],
+    x->MappedWord(UnderlyingElement(x),
+      FreeGeneratorsOfFpGroup(fH),GeneratorsOfGroup(pc)));
+  eH:=GroupHomomorphismByImages(H,pc,MappingGeneratorsImages(eH)[1],imgs);
+
+  s:=eG*InverseGeneralMapping(eH);
+  if pre<>fail then s:=pre*s;fi;
+  if post<>fail then s:=s*InverseGeneralMapping(post);fi;
+  s:=AsGroupGeneralMappingByImages(s);
+
+  return s;
+end);
+
 #############################################################################
 ##
 #F  IsomorphismGroups(<G>,<H>) . . . . . . . . . .  isomorphism from G onto H
@@ -2853,10 +2910,20 @@ local m;
     fi;
   fi;
 
+  if Size(G)<>Size(H) then
+    return fail;
+  fi;
+
   if IsSimpleGroup(G) then
     m:=IsomorphismSimpleGroups(G,H);
     if m=false then return fail;fi;
     if m<>fail then return m;fi;
+  fi;
+
+  # 2000 is the limit for using the small groups code
+  if Size(G)>2000 and IsPGroup(G) and
+    IsPackageMarkedForLoading("anupq","")=true then
+    return IsomorphismPGroups(G,H);
   fi;
 
   if Size(SolvableRadical(G))>1 and CanComputeFittingFree(G)
@@ -2874,9 +2941,7 @@ local m;
     return PatheticIsomorphism(G,H);
   fi;
 
-  if Size(G)<>Size(H) then
-    return fail;
-  elif ID_AVAILABLE(Size(G)) <> fail
+  if ID_AVAILABLE(Size(G)) <> fail
     and ValueOption(NO_PRECOMPUTED_DATA_OPTION)<>true then
     Info(InfoPerformance,2,"Using Small Groups Library");
     if IdGroup(G)<>IdGroup(H) then
@@ -3019,7 +3084,7 @@ local Fgens,    # generators of F
 
       val:=Product(pimgs,i->Sum(i,Size));
       if val<bestval then
-        Info(InfoMorph,2,"better value: ",List(u,i->Order(i)),
+        Info(InfoMorph,2,"better value: ",List(u,Order),
               "->",val);
         best:=[u,pimgs];
         bestval:=val;

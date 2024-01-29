@@ -497,7 +497,7 @@ local schreiertree, cosetrepresentative, flag, schtree, stab, k, p, j,
   stab:=Group(stab);
 
   orbits:=Orbits(stab,dom{[1..Binomial(n,l2)^l1]},OnPoints);
-  k:=Position(List(orbits, x->Length(x)),l1*l2*(n-l2));
+  k:=Position(List(orbits, Length),l1*l2*(n-l2));
   if k = fail then
     flag:= false;
   else
@@ -1323,7 +1323,7 @@ syll, act, typ, sel, bas, wdom, comp, lperm, other, away, i, j,b0,opg,bp;
   else
 
     # first sort by Length
-    Sort(o,function(a,b) return Length(a)<Length(b);end);
+    SortBy(o, Length);
     l:=Length(o);
     pg:=[]; # parent generators
     is:=1;
@@ -1960,7 +1960,7 @@ InstallMethod( OrbitStabilizingParentGroup, "direct product of S_n's",
 function(G)
 local o,d,i,j,l,s;
   o:=ShallowCopy(OrbitsDomain(G,MovedPoints(G)));
-  Sort(o,function(a,b) return Length(a)<Length(b);end);
+  SortBy(o, Length);
   d:=false;
   i:=1;
   while i<=Length(o) do
@@ -2401,7 +2401,7 @@ local G,max,dom,n,A,S,issn,p,i,j,m,k,powdec,pd,gps,v,invol,sel,mf,l,prim;
                           SignPermGroup,SignPermGroup(G)]);
 
     # remove obvious subgroups
-    Sort(l,function(a,b)return Size(a)<Size(b);end);
+    SortBy(l, Size);
     sel:=[];
     for i in [1..Length(l)] do
       if not ForAny([i+1..Length(l)],j->IsSubgroup(l[j],l[i])) then
@@ -2460,7 +2460,7 @@ local G,max,dom,n,A,S,issn,p,i,j,m,k,powdec,pd,gps,v,invol,sel,mf,l,prim;
       k:=CallFuncList(ValueGlobal("AllPrimitiveGroups"),
        [NrMovedPoints,n,SocleTypePrimitiveGroup,
           SocleTypePrimitiveGroup(m),SignPermGroup,-1]);
-      k:=List(k,i->AlternatingSubgroup(i));
+      k:=List(k,AlternatingSubgroup);
       if ForAll(k,j->not IsTransitive(j,[1..n]) or not IsPrimitive(j,[1..n])
               or PrimitiveIdentification(j)<>PrimitiveIdentification(m)) then
         Add(max,m^invol);

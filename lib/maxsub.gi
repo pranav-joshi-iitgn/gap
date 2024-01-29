@@ -220,7 +220,7 @@ BindGlobal("MaximalSubgroupClassesSol",function(G)
           if homliftlevel+1<f then
             pcgsM := InducedPcgsByPcSequenceNC( spec, spec{[homliftlevel+1..f-1]} );
             RUN_IN_GGMBI:=true;
-            fphom:=LiftFactorFpHom(fphom,G,Group(spec),
+            fphom:=LiftFactorFpHom(fphom,G,
               Group(spec{[f..Length(spec)]}),pcgsM);
             RUN_IN_GGMBI:=false;
             homliftlevel:=f-1;
@@ -368,7 +368,7 @@ local  c, maxs,sel,reps;
         or Size(reps[x])=Size(StabilizerOfExternalSet(c[x])));
 
   reps:=reps{sel};
-  Sort(reps,function(a,b) return Size(a)<Size(b);end);
+  SortBy(reps, Size);
 
   # nor go by descending order through the representatives. Always eliminate
   # all remaining proper subgroups of conjugates. What remains must be
@@ -1020,7 +1020,7 @@ end);
 BindGlobal("NextLevelMaximals",function(g,l)
 local m;
   if Length(l)=0 then return [];fi;
-  m:=Concatenation(List(l,x->MaximalSubgroupClassReps(x)));
+  m:=Concatenation(List(l,MaximalSubgroupClassReps));
   if Length(l)>1 then
     m:=Unique(m);
   fi;

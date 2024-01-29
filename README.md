@@ -55,7 +55,6 @@ least these:
 * a C++ compiler
 * GNU Make
 * GNU Autoconf
-* GNU Libtool
 
 In addition, we recommend that you install at least the following optional
 dependencies (if you do not, GAP will either build its own copies of these,
@@ -66,13 +65,13 @@ slowing down the compilation process, or omit certain features):
 
 On Ubuntu or Debian, you can install these with the following command:
 
-    sudo apt-get install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev
+    sudo apt-get install build-essential autoconf libgmp-dev libreadline-dev zlib1g-dev
 
 On macOS, you can install the dependencies in several ways:
 
- * using Homebrew: `brew install autoconf libtool gmp readline`
- * using Fink: `fink install autoconf2.6 libtool2 gmp5 readline7`
- * using MacPorts: `port install autoconf libtool gmp readline`
+ * using Homebrew: `brew install autoconf gmp readline`
+ * using Fink: `fink install autoconf2.6 gmp5 readline7`
+ * using MacPorts: `port install autoconf gmp readline`
 
 On other operating systems, you will need to figure out equivalent commands
 to install the required dependencies.
@@ -121,17 +120,19 @@ You can also find development versions of some of the GAP packages on
 
 The GAP Project welcomes contributions from everyone, in the shape of code,
 documentation, blog posts, or other. For contributions to this repository,
-please read the [guidelines](CONTRIBUTING.md).
+please read the [contributor guidelines](CONTRIBUTING.md). Additional information:
+- [Developer guidelines](DEVELOPING.md)
+- [Notes on the build system](README.buildsys.md)
 
 To keep up to date on GAP news (discussion of problems, release announcements,
 bug fixes), you can subscribe to the
 [GAP forum](https://www.gap-system.org/Contacts/Forum/forum.html) and
-[GAP development](https://mail.gap-system.org/mailman/listinfo/gap) mailing lists,
-notifications on GitHub, and follow us on [Twitter](https://twitter.com/gap_system).
+[GAP development](https://lists.uni-kl.de/gap/info/gap) mailing lists,
+notifications on GitHub, and chat with us on [Slack](https://gap-system.org/slack).
 
 If you have any questions about working with GAP, you can ask them on
 [GAP forum](https://www.gap-system.org/Contacts/Forum/forum.html) (requires subscription)
-or [GAP Support](https://www.gap-system.org/Contacts/People/supportgroup.html) mailing lists.
+or [GAP support](https://www.gap-system.org/Contacts/People/supportgroup.html) mailing lists.
 
 Please tell us about your use of GAP in research or teaching. We maintain a
 [bibliography of publications citing GAP](https://www.gap-system.org/Doc/Bib/bib.html).

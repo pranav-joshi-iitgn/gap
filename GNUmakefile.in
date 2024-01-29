@@ -12,7 +12,6 @@
 #
 
 # GAP specific
-SYS_IS_CYGWIN32 = @SYS_IS_CYGWIN32@
 ABI = @ABI@
 ABI_CFLAGS = @ABI_CFLAGS@
 
@@ -31,10 +30,6 @@ MAINTAINER_MODE = @MAINTAINER_MODE@
 # GAP version and release date
 GAP_VERSION = @GAP_VERSION@
 GAP_RELEASEDAY = @GAP_RELEASEDAY@
-
-# libtool library version
-GAP_LIBTOOL_CURRENT = @GAP_LIBTOOL_CURRENT@
-GAP_LIBTOOL_AGE = @GAP_LIBTOOL_AGE@
 
 # GAP kernel version
 GAP_KERNEL_MINOR_VERSION = @gap_kernel_minor_version@
@@ -107,9 +102,6 @@ MKDIR_P = @MKDIR_P@
 SED = @SED@
 SHELL = @SHELL@
 
-# for GNU libtool
-LIBTOOL = @LIBTOOL@
-
 # misc
 EXEEXT = @EXEEXT@
 
@@ -169,6 +161,12 @@ vpath src/hpc/%.h $(srcdir)
 vpath src/hpc/%.c $(srcdir)
 vpath src/hpc/%.cc $(srcdir)
 vpath src/hpc/%.s $(srcdir)
+
+vpath tst/testkernel/%.h $(srcdir)
+vpath tst/testkernel/%.c $(srcdir)
+
+vpath tst/testlibgap/%.h $(srcdir)
+vpath tst/testlibgap/%.c $(srcdir)
 
 
 #

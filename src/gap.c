@@ -1209,7 +1209,7 @@ void UpdateTime(UInt startTime)
 
 // UPDATE_STAT lets code assign the special variables which GAP
 // automatically sets in interactive sessions. This is for demonstration
-// code which wants to look like iteractive usage of GAP. Using this
+// code which wants to look like interactive usage of GAP. Using this
 // function will not stop GAP automatically changing these variables as
 // usual.
 static Obj FuncUPDATE_STAT(Obj self, Obj name, Obj newStat)
@@ -1524,9 +1524,9 @@ void InitializeGap (
     if ( SyLoadSystemInitFile ) {
       GAP_TRY {
         if ( READ_GAP_ROOT("lib/init.g") == 0 ) {
-                Pr( "gap: hmm, I cannot find 'lib/init.g' maybe",
-                    0, 0);
-                Pr( " use option '-l <gaproot>'?", 0, 0);
+                Pr( "gap: hmm, I cannot find 'lib/init.g' maybe"
+                    " use option '-l <gaproot>'?\n", 0, 0);
+                SystemErrorCode = 1;
             }
       }
       GAP_CATCH {

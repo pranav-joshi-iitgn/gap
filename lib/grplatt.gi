@@ -1007,7 +1007,7 @@ InstallGlobalFunction(LatticeViaRadical,function(arg)
             if not k in nts then Add(nts,k);fi;
           od;
         od;
-        SortBy(nts,x->Size(x)); # increasing order
+        SortBy(nts,Size); # increasing order
         # by setting up `act' as fail, we force a different selection later
         act:=[nts,fail];
 
@@ -1063,7 +1063,7 @@ InstallGlobalFunction(LatticeViaRadical,function(arg)
         if H=fail or IsSubset(HN,a) then
           Add(nu,a);Add(nn,n);
           if Size(ser[i])>1 then
-            fphom:=LiftFactorFpHom(u[3][j],a,ser[i-1],ser[i],presmpcgs);
+            fphom:=LiftFactorFpHom(u[3][j],a,ser[i],presmpcgs);
             Add(nf,fphom);
           fi;
         fi;
@@ -1196,12 +1196,12 @@ InstallGlobalFunction(LatticeViaRadical,function(arg)
                     if Size(ser[i])>1 then
                       # need to lift presentation
                       fphom:=ComplementFactorFpHom(ocr.factorfphom,
-                      a,ser[i-1],nts[j],c,
+                      ser[i-1],nts[j],c,
                       ocr.generators,cgs[w.pos]);
 
                       Assert(1,KernelOfMultiplicativeGeneralMapping(fphom)=nts[j]);
                       if Size(nts[j])>Size(ser[i]) then
-                        fphom:=LiftFactorFpHom(fphom,c,nts[j],ser[i],npcgs);
+                        fphom:=LiftFactorFpHom(fphom,c,ser[i],npcgs);
                         Assert(1,
                           KernelOfMultiplicativeGeneralMapping(fphom)=ser[i]);
                       fi;
@@ -2085,7 +2085,7 @@ local G,        # group
                         # transfer a known presentation
                         if not IsPcGroup(k) then
                           k!.lattfpres:=ComplementFactorFpHom(
-                            ocr.factorfphom,l,M,N,k,ocr.generators,comp);
+                            ocr.factorfphom,M,N,k,ocr.generators,comp);
                           Assert(3,KernelOfMultiplicativeGeneralMapping(k!.lattfpres)=N);
                         fi;
                         k!.obtain:="compl";
@@ -2310,7 +2310,7 @@ local G,        # group
           Assert(3,KernelOfMultiplicativeGeneralMapping(l!.lattfpres)=M);
           # lift presentation
           # note: if notabelian mpcgs is an fp hom
-          l!.lattfpres:=LiftFactorFpHom(l!.lattfpres,l,M,N,mpcgs);
+          l!.lattfpres:=LiftFactorFpHom(l!.lattfpres,l,N,mpcgs);
           l!.obtain:="lift";
         fi;
       od;
@@ -2394,7 +2394,7 @@ local rt,op,a,l,i,j,u,max,subs;
   if l = 0 then return rec( inclusions := [ [0,1] ], subgroups := [] ); fi;
 
   # compute inclusion information among sets
-  Sort(a,function(x,y)return Length(x)<Length(y);end);
+  SortBy(a, Length);
   # this is n^2 but I hope will not dominate everything.
   subs:=List([1..l],i->Filtered([1..i-1],j->IsSubset(a[i],a[j])));
       # List the sets we know to be contained in each set
@@ -2562,9 +2562,7 @@ local hom,F,cl,cls,lcl,sub,sel,unsel,i,j,rmNonMax;
   unsel:=[1,Size(F)];
   cl:=Filtered(ConjugacyClassesSubgroups(F),
                i->not Size(Representative(i)) in unsel);
-  Sort(cl,function(a,b)
-            return Size(Representative(a))<Size(Representative(b));
-          end);
+  SortBy(cl,a->Size(Representative(a)));
   cl:=Concatenation(List(cl,AsList));
   lcl:=Length(cl);
   cls:=List(cl,Size);
@@ -3864,7 +3862,7 @@ local divs,limit,mode,l,process,done,bound,maxer,prime;
               fi;
             od;
           od;
-          a:=Filtered(a,x->IsBound(x));
+          a:=Compacted(a);
           if tb>bound and Length(a)>5*10^(1+LogInt((1+QuoInt(tb,bound)),prime)) then
             bound:=bound*prime;
             tb:=infinity;
@@ -3912,8 +3910,7 @@ local divs,limit,mode,l,process,done,bound,maxer,prime;
                  and Size(process[Length(process)])>=Maximum(List(l,Size)) do
                   # need to process those that could give next size (or
                   # larger)
-                  a:=process[Length(process)];
-                  Unbind(process[Length(process)]);
+                  a:=Remove(process);
                   m:=maxer(a);
                   Append(l,m);
                 od;
@@ -3921,7 +3918,7 @@ local divs,limit,mode,l,process,done,bound,maxer,prime;
 
                 # delete the orders not used any more
                 while Length(l)>0 and Size(l[Length(l)])<divs[Length(divs)] do
-                  Unbind(divs[Length(divs)]); # sizes still in play
+                  Remove(divs); # sizes still in play
                 od;
                 done:=[]; # can ignore anything larger
 
@@ -3939,8 +3936,7 @@ local divs,limit,mode,l,process,done,bound,maxer,prime;
               fi;
 
               # get next group
-              a:=l[Length(l)];
-              Unbind(l[Length(l)]);
+              a:=Remove(l);
               Add(done,a);
               if Size(a)=1 then mode:=2;fi;
               return a;
@@ -3987,5 +3983,3 @@ local s,p,incl,cont,i,j,done;
   Sort(incl);
   return incl;
 end);
-
-

@@ -3034,10 +3034,7 @@ InstallGlobalFunction(CanEasilyCompareElementsFamily,function(fam)
 end);
 
 InstallMethod(CanEasilyCompareElements,"family: default false",
-  [IsFamily],
-function(obj)
-  return false;
-end);
+  [IsFamily], ReturnFalse);
 
 InstallOtherMethod(SetCanEasilyCompareElements,"family setter",
   [IsFamily,IsObject],
@@ -3105,6 +3102,7 @@ local filt;
 
   # some sanity checks
   Assert(0, not HasIsEmpty(obj) or (IsEmpty(obj) = (sz=0)));
+  Assert(0, not HasIsNonTrivial(obj) or (IsNonTrivial(obj) = (sz<>1)));
   Assert(0, not HasIsTrivial(obj) or (IsTrivial(obj) = (sz=1)));
   Assert(0, not HasIsFinite(obj) or (IsFinite(obj) = (sz<>infinity)));
 

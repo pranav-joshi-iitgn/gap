@@ -290,6 +290,7 @@ function(g,str,N)
       od;
       if Size(ser[1])<Size(f) then
         ser:=ChiefSeriesThrough(f,ser);
+        gens:=Union(gens,Union(List(ser,SmallGeneratingSet)));
       fi;
       if f<>g then
         gens:=List(gens,x->PreImagesRepresentativeNC(hom,x));
@@ -300,6 +301,7 @@ function(g,str,N)
     else
       rad:=g;
     fi;
+
     if Length(ser)=0 or Size(ser[Length(ser)])>Size(rad) then Add(ser,rad);fi;
 
     if Size(rad)>1 then
@@ -480,6 +482,7 @@ function(g,str,N)
   vals:=[];
 
   dec:=[];
+
   for i in [2..Length(ser)] do
     still:=i<Length(ser);
     lgens:=gens{idx[i-1]};
@@ -633,7 +636,7 @@ function(hom,elm)
 end);
 
 InstallGlobalFunction(LiftFactorFpHom,
-function(hom,G,M,N,mnsf)
+function(hom,G,N,mnsf)
 local fpq, qgens, qreps, fpqg, rels, pcgs, p, f, qimg, idx, nimg, decomp,
       ngen, fp, hom2, di, source, dih, dec, i, j;
   fpq:=Range(hom);
@@ -763,7 +766,7 @@ local fpq, qgens, qreps, fpqg, rels, pcgs, p, f, qimg, idx, nimg, decomp,
 end);
 
 InstallGlobalFunction(ComplementFactorFpHom,
-function(h,g,m,n,k,ggens,cgens)
+function(h,m,n,k,ggens,cgens)
 local di, hom;
   if IsBound(h!.decompinfo) then
     di:=ShallowCopy(h!.decompinfo);
@@ -1063,7 +1066,7 @@ local fam,mfam,fpfam,mfpfam,hom;
             else x:=-i/2;fi;
             # word must be freely cancelled
             if Length(g)>0 and x=-g[Length(g)] then
-              Unbind(g[Length(g)]);
+              Remove(g);
             else Add(g,x); fi;
           od;
           return ElementOfFpGroup(fpfam,AssocWordByLetterRep(fam,g));
@@ -1962,12 +1965,19 @@ local isob,isos,iso,gens,a,rels,l,i,j,bgens,cb,cs,b,f,k,w,monoid,
   dcnums:=OrbitsDomain(act,[1..Length(rt)]);
   dcnums:=List(dcnums,x->Immutable(Set(x)));
 
-  # ensure that weyl is rep
+
+  # ensure that "weyl group" represents double cosets (but allow double
+  # coverage)
+
+  rti:=List(dcnums,ReturnFalse); # which double are hit already
   for i in weyl do
     a:=PositionCanonical(rt,i);
     j:=PositionProperty(dcnums,x->a in x);
-    if dcnums[j][1]<>a then
-      dcnums[j]:=Concatenation([a],Difference(dcnums[j],[a]));
+    if rti[j]=false then
+      rti[j]:=true;
+      if dcnums[j][1]<>a then
+        dcnums[j]:=Concatenation([a],Difference(dcnums[j],[a]));
+      fi;
     fi;
   od;
 
@@ -2018,8 +2028,10 @@ local isob,isos,iso,gens,a,rels,l,i,j,bgens,cb,cs,b,f,k,w,monoid,
 
     j:=dcr(i);
     a:=Position(dcnum,j[1]);
-    if not IsBound(dcreps[a]) then dcreps[a]:=i; fi;
-    dcfix[a]:=j[2]^-1; # mapping calculated to weyl elt
+    if not IsBound(dcreps[a]) then
+      dcreps[a]:=i;
+      dcfix[a]:=j[2]^-1; # mapping calculated to weyl elt
+    fi;
   od;
 
   if not ForAll([1..Length(dc)],x->IsBound(dcreps[x])) then
@@ -2211,10 +2223,7 @@ if rule[1]=rule[2] then return;fi;
         for p in left do
           Add(stack,rels[p]);
           DeleteRuleKBDAG(rdag,LetterRepAssocWord(rels[p][1]),p);
-          for j in [p+1..Length(rels)] do
-            rels[j-1]:=rels[j];
-          od;
-          Unbind(rels[Length(rels)]);
+          Remove(rels,p);
         od;
         p:=AddRuleKBDAG(rdag,trule[1],Length(rels)+1);
       elif p=false then Error("could be reduced");fi;
@@ -2297,7 +2306,7 @@ if rule[1]=rule[2] then return;fi;
       for i in Pcgs(ha) do
         a:=[weylword(i),borelword(i)];
         Info(InfoFpGroup,2,"intersection:",a);
-        a:=List(a,x->trawou(x));
+        a:=List(a,trawou);
         addrule(a);
       od;
       b:=IsomorphismFpMonoid(weyl!.epiweyl);
@@ -2371,7 +2380,7 @@ if rule[1]=rule[2] then return;fi;
           b:=borelword(j);
           k:=borelword(k);
           a:=[b*a,a*k];
-          a:=List(a,x->trawou(x));
+          a:=List(a,trawou);
           addrule(a);
         else
           Add(noncomm[i],jj);
@@ -2478,7 +2487,7 @@ if rule[1]=rule[2] then return;fi;
         k[i]:=Intersection(k[i],[-QuoInt(pri[i],2)..QuoInt(pri[i],2)]);
         k[i]:=List(k[i],x->a[i]^x);
       od;
-      borelelm:=Set(Cartesian(k),x->Product(x));
+      borelelm:=Set(Cartesian(k),Product);
 
     fi;
 
@@ -2618,7 +2627,7 @@ if rule[1]=rule[2] then return;fi;
           else x:=-i/2;fi;
           # word must be freely cancelled
           if Length(g)>0 and x=-g[Length(g)] then
-            Unbind(g[Length(g)]);
+            Remove(g);
           else Add(g,x); fi;
         od;
         return ElementOfFpGroup(FamilyObj(One(gp)),
@@ -2815,7 +2824,9 @@ local d,f,group,act,g,sy,b,c,borel,weyl,a,i,iso,ucs,gens,gl;
       iso:=SplitBNRewritingPresentation(group,borel,weyl,true);
       return IsomorphismGroups(G,Source(iso))*iso;
     else
-      Error("can't do yet");
+      borel:=Group(SpecialPcgs(borel));
+      iso:=SplitBNRewritingPresentation(group,borel,weyl,true);
+      return IsomorphismGroups(G,Source(iso))*iso;
     fi;
 
   elif a.idSimple.series="C" or
@@ -2862,7 +2873,12 @@ local d,f,group,act,g,sy,b,c,borel,weyl,a,i,iso,ucs,gens,gl;
     a:=Image(act,a);
     weyl:=WeylGroupFp("B",d);
     Size(weyl);
-    c:=GQuotients(a,weyl)[1];
+    c:=GQuotients(a,weyl);
+    if Length(c)>1 then
+      c:=Filtered(c,
+        x->KernelOfMultiplicativeGeneralMapping(x)=Intersection(a,borel));
+    fi;
+    c:=c[1];
     a:=SubgroupNC(group,List(GeneratorsOfGroup(weyl),
       x->PreImagesRepresentativeNC(c,x)));
     Size(a);

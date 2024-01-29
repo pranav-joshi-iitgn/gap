@@ -1493,19 +1493,18 @@ static Obj FuncALL_KEYWORDS(Obj self)
 **  'Pr' is the output function. The first argument is a 'printf' like format
 **  string containing   up   to 2  '%'  format   fields,  specifying  how the
 **  corresponding arguments are to be  printed.  The two arguments are passed
-**  as  'Int'   integers.   This  is possible  since every  C object  ('int',
-**  'char', pointers) except 'float' or 'double', which are not used  in GAP,
-**  can be converted to a 'Int' without loss of information.
+**  as  'Int'  integers. This assumes that GAP is built on an architecture
+**  where each of the C types possibly passed as argument to 'Pr' ('int',
+**  'char', pointers) can be converted to 'Int' without loss of information.
 **
 **  The function 'Pr' currently support the following '%' format  fields:
 **  '%c'    the corresponding argument represents a character,  usually it is
-**          its ASCII or EBCDIC code, and this character is printed.
+**          its ASCII code, and this character is printed.
 **  '%s'    the corresponding argument is the address of  a  null  terminated
 **          character string which is printed.
-**  '%S'    the corresponding argument is the address of  a  null  terminated
-**          character string which is printed with escapes.
-**  '%g'    the corresponding argument is the address of an Obj which points
-**          to a string in STRING_REP format which is printed in '%s' format
+**  '%g'    the corresponding argument is the address of a T_STRING string
+**          object which is printed. This is similar to using '%s' to print
+**          CSTR_STRING(arg), but is safe during garbage collection.
 **  '%G'    the corresponding argument is the address of an Obj which points
 **          to a string in STRING_REP format which is printed in '%S' format
 **  '%C'    the corresponding argument is the address of an Obj which points
@@ -1514,16 +1513,10 @@ static Obj FuncALL_KEYWORDS(Obj self)
 **          Between the '%' and the 'd' an integer might be used  to  specify
 **          the width of a field in which the integer is right justified.  If
 **          the first character is '0' 'Pr' pads with '0' instead of <space>.
-**  '%i'    is a synonym of %d, in line with recent C library developments
-**  '%I'    print an identifier, given as a null terminated character string.
-**  '%H'    print an identifier, given as GAP string in STRING_REP
+**  '%I'    print an identifier, given as GAP string in STRING_REP.
 **  '%>'    increment the indentation level.
 **  '%<'    decrement the indentation level.
 **  '%%'    can be used to print a single '%' character. No argument is used.
-**
-**  You must always  cast the arguments to  '(Int)'  to avoid  problems  with
-**  those compilers with a default integer size of 16 instead of 32 bit.  You
-**  must pass 0 if you don't make use of an argument to please lint.
 */
 static inline void FormatOutput(
     void (*put_a_char)(void *state, Char c),
@@ -1568,7 +1561,7 @@ static inline void FormatOutput(
     }
 
     // '%d' print an integer
-    else if ( *p == 'd'|| *p == 'i' ) {
+    else if (*p == 'd') {
       int is_neg = (arg1 < 0);
       if ( is_neg ) {
         arg1 = -arg1;
@@ -1594,6 +1587,7 @@ static inline void FormatOutput(
 
     // '%s' or '%g' print a string
     else if ( *p == 's' || *p == 'g') {
+      UInt len;
 
       // If arg is a GAP obj, get out the contained string, and
       // set arg1obj so we can re-evaluate after any possible GC
@@ -1601,96 +1595,45 @@ static inline void FormatOutput(
       if (*p == 'g') {
         arg1obj = (Obj)arg1;
         arg1 = (Int)CONST_CSTR_STRING(arg1obj);
+        len = GET_LEN_STRING(arg1obj);
       }
       else {
         arg1obj = 0;
+        len = strlen((const Char *)arg1);
       }
 
       // compute how many characters this identifier requires
-      for ( const Char * q = (const Char *)arg1; *q != '\0' && prec > 0; q++ ) {
-        prec--;
-      }
+      if (len >= prec)
+        prec = 0;
+      else
+        prec -= len;
 
       // if wanted push an appropriate number of <space>-s
       while ( prec-- > 0 )  put_a_char(state, ' ');
 
       if (arg1obj) {
-          arg1 = (Int)CONST_CSTR_STRING(arg1obj);
+        arg1 = (Int)CONST_CSTR_STRING(arg1obj);
       }
 
       // print the string
       /* must be careful that line breaks don't go inside
          escaped sequences \n or \123 or similar */
-      for ( Int i = 0; ((const Char *)arg1)[i] != '\0'; i++ ) {
-          const Char* q = ((const Char *)arg1) + i;
-          if (*q == '\\' && IO()->NoSplitLine == 0) {
-              if (*(q + 1) < '8' && *(q + 1) >= '0')
-                  IO()->NoSplitLine = 3;
-              else
-                  IO()->NoSplitLine = 1;
+      for (UInt i = 0; i < len; i++) {
+        const Char* q = ((const Char *)arg1) + i;
+        // skip null bytes; this means 'prec' is off in this case. Fixing this
+        // is not worth the effort. So instead, new rule: if you print strings
+        // with null bytes, behavior of 'prec' is undefined.
+        if (*q == '\0')
+          continue;
+        if (*q == '\\' && IO()->NoSplitLine == 0) {
+          if (*(q + 1) < '8' && *(q + 1) >= '0')
+            IO()->NoSplitLine = 3;
+          else
+            IO()->NoSplitLine = 1;
         }
         else if (IO()->NoSplitLine > 0)
-            IO()->NoSplitLine--;
+          IO()->NoSplitLine--;
         put_a_char(state, *q);
-
-        if (arg1obj) {
-          arg1 = (Int)CONST_CSTR_STRING(arg1obj);
-        }
-      }
-
-      // on to the next argument
-      arg1 = arg2;
-    }
-
-    // '%S' or '%G' print a string with the necessary escapes
-    else if ( *p == 'S' || *p == 'G' ) {
-
-      // If arg is a GAP obj, get out the contained string, and
-      // set arg1obj so we can re-evaluate after any possible GC
-      // which occurs in put_a_char
-      if (*p == 'G') {
-        arg1obj = (Obj)arg1;
-        arg1 = (Int)CONST_CSTR_STRING(arg1obj);
-      }
-      else {
-        arg1obj = 0;
-      }
-
-
-      // compute how many characters this identifier requires
-      for ( const Char * q = (const Char *)arg1; *q != '\0' && prec > 0; q++ ) {
-        if      ( *q == '\n'  ) { prec -= 2; }
-        else if ( *q == '\t'  ) { prec -= 2; }
-        else if ( *q == '\r'  ) { prec -= 2; }
-        else if ( *q == '\b'  ) { prec -= 2; }
-        else if ( *q == '\01' ) { prec -= 2; }
-        else if ( *q == '\02' ) { prec -= 2; }
-        else if ( *q == '\03' ) { prec -= 2; }
-        else if ( *q == '"'   ) { prec -= 2; }
-        else if ( *q == '\\'  ) { prec -= 2; }
-        else                    { prec -= 1; }
-      }
-
-      // if wanted push an appropriate number of <space>-s
-      while ( prec-- > 0 )  put_a_char(state, ' ');
-
-      if (arg1obj) {
-          arg1 = (Int)CONST_CSTR_STRING(arg1obj);
-      }
-
-      // print the string
-      for ( Int i = 0; ((const Char *)arg1)[i] != '\0'; i++ ) {
-        const Char* q = ((const Char *)arg1) + i;
-        if      ( *q == '\n'  ) { put_a_char(state, '\\'); put_a_char(state, 'n');  }
-        else if ( *q == '\t'  ) { put_a_char(state, '\\'); put_a_char(state, 't');  }
-        else if ( *q == '\r'  ) { put_a_char(state, '\\'); put_a_char(state, 'r');  }
-        else if ( *q == '\b'  ) { put_a_char(state, '\\'); put_a_char(state, 'b');  }
-        else if ( *q == '\01' ) { put_a_char(state, '\\'); put_a_char(state, '>');  }
-        else if ( *q == '\02' ) { put_a_char(state, '\\'); put_a_char(state, '<');  }
-        else if ( *q == '\03' ) { put_a_char(state, '\\'); put_a_char(state, 'c');  }
-        else if ( *q == '"'   ) { put_a_char(state, '\\'); put_a_char(state, '"');  }
-        else if ( *q == '\\'  ) { put_a_char(state, '\\'); put_a_char(state, '\\'); }
-        else                    { put_a_char(state, *q);               }
 
         if (arg1obj) {
           arg1 = (Int)CONST_CSTR_STRING(arg1obj);
@@ -1751,19 +1694,11 @@ static inline void FormatOutput(
     }
 
     // '%I' print an identifier
-    else if ( *p == 'I' || *p =='H' ) {
-      int found_keyword = 0;
+    else if (*p == 'I') {
+      BOOL found_keyword = FALSE;
 
-      // If arg is a GAP obj, get out the contained string, and
-      // set arg1obj so we can re-evaluate after any possible GC
-      // which occurs in put_a_char
-      if (*p == 'H') {
-        arg1obj = (Obj)arg1;
-        arg1 = (Int)CONST_CSTR_STRING(arg1obj);
-      }
-      else {
-        arg1obj = 0;
-      }
+      arg1obj = (Obj)arg1;
+      arg1 = (Int)CONST_CSTR_STRING(arg1obj);
 
       // check if q matches a keyword
       found_keyword = IsKeyword((const Char *)arg1);
@@ -1794,9 +1729,7 @@ static inline void FormatOutput(
           put_a_char(state, '\\');
         }
         put_a_char(state, c);
-        if (arg1obj) {
-          arg1 = (Int)CONST_CSTR_STRING(arg1obj);
-        }
+        arg1 = (Int)CONST_CSTR_STRING(arg1obj);
       }
 
       // on to the next argument
@@ -1838,15 +1771,15 @@ static inline void FormatOutput(
 
 }
 
-
-static void putToTheStream(void *state, Char c) {
+static void putToTheStream(void *state, Char c)
+{
     PutChrTo((TypOutputFile *)state, c);
 }
 
 static void
 PrTo(TypOutputFile * stream, const Char * format, Int arg1, Int arg2)
 {
-  FormatOutput( putToTheStream, stream, format, arg1, arg2);
+    FormatOutput( putToTheStream, stream, format, arg1, arg2);
 }
 
 void Pr (

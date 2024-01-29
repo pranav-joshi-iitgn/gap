@@ -939,9 +939,7 @@ local live,orbs,orbset,done,nr,p,o,os,orbitextender,bahn,i,j,enum,dict,map,pam;
               if IsBound(map[j]) and map[j]>i then map[j]:=map[j]-1; fi;
             od;
 
-            # Remove entry i, i.e.
-            #p:=[i..Length(orbs)-1];
-            #orbs{p}:=orbs{p+1};Unbind(orbs[Length(orbs)]);
+            # Remove entry i
             Remove(orbs,i);
             Remove(orbset,i);
             Remove(done,i);
@@ -1422,7 +1420,9 @@ local c, flip, maxidx, cano, tryfct, p, r, t,
         # in the normal case, we can obtain the other orbits easily via
         # the orbit theorem (same stabilizer)
         if Size(lst)/Size(st)<10 then
-          rt:=Orbit(lst,One(st),
+          # if the group `st` is handled by a nice monomorphism, the
+          # identity might not be the canonical element for the subgroup.
+          rt:=Orbit(lst,CanonicalRightCosetElement(st,One(st)),
             function(rep,g) return CanonicalRightCosetElement(st,rep*g);end);
         else
           rt:=RightTransversal(lst,st:noascendingchain);

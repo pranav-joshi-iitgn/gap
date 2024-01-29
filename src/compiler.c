@@ -611,10 +611,7 @@ static UInt CompGetUseRNam(RNam rnam)
 **
 **  'Emit' supports the following '%' format elements:
 **  - '%d' formats an integer,
-**  - '%s' formats a string,
-**  - '%S' formats a string with all the necessary escapes,
 **  - '%g' formats a GAP string,
-**  - '%G' formats a GAP string with all the necessary escapes,
 **  - '%C' does the same but uses only valid C escapes,
 **  - '%n' formats a name ('_' is converted to '__', special characters are
 **         converted to '_<hex1><hex2>')
@@ -634,7 +631,6 @@ static void Emit(const char * fmt, ...)
     va_list             ap;             // argument list pointer
     Int                 dint;           // integer argument
     CVar                cvar;           // C variable argument
-    Char *              string;         // string argument
     const Char *        p;              // loop variable
     const Char *        hex = "0123456789ABCDEF";
 
@@ -667,15 +663,8 @@ static void Emit(const char * fmt, ...)
                 Pr("%d", dint, 0);
             }
 
-            // emit a C string
-            else if ( *p == 's' || *p == 'S' ) {
-                const Char f[] = { '%', *p, 0 };
-                string = va_arg( ap, Char* );
-                Pr(f, (Int)string, 0);
-            }
-
             // emit a GAP string
-            else if ( *p == 'g' || *p == 'G' || *p == 'C' ) {
+            else if ( *p == 'g' || *p == 'C' ) {
                 const Char f[] = { '%', *p, 0 };
                 Obj str = va_arg( ap, Obj );
                 Pr(f, (Int)str, 0);
@@ -1135,12 +1124,12 @@ static CVar CompFuncExpr(Expr expr)
         Obj nams = NAMS_FUNC(fexp);
         if (narg < 0)
             narg = -narg;
-        Emit( ", ArgStringToList(\"" );
-        Emit( "%g", ELM_PLIST(nams, 1) );
+        Emit( ", NewPlistFromArgs(" );
+        Emit( "MakeImmString(\"%g\")", ELM_PLIST(nams, 1) );
         for (Int i = 2; i <= narg; i++) {
-            Emit( ",%g", ELM_PLIST(nams, i) );
+            Emit( ", MakeImmString(\"%g\")", ELM_PLIST(nams, i) );
         }
-        Emit( "\")" );
+        Emit( ")" );
     }
     else {
         Emit( ", 0" );
@@ -5283,7 +5272,7 @@ Int CompileFunc(Obj filename, Obj func, Obj name, Int magic1, Obj magic2)
     for ( i = 1; i <= compFunctionsNr; i++ ) {
         Obj n = NAME_FUNC(ELM_PLIST(CompFunctions,i));
         if ( n != 0 && IsStringConv(n) ) {
-            Emit( "NameFunc[%d] = MakeImmString(\"%G\");\n", i, n );
+            Emit( "NameFunc[%d] = MakeImmString(\"%C\");\n", i, n );
         }
         else {
             Emit( "NameFunc[%d] = 0;\n", i );
@@ -5390,8 +5379,8 @@ static Obj FuncCOMPILE_FUNC(Obj self, Obj arg)
     // unravel the arguments
     len = LEN_LIST(arg);
     if ( len < 5 ) {
-        ErrorQuit( "usage: COMPILE_FUNC( <output>, <func>, <name>, %s",
-                   (Int)"<magic1>, <magic2>, ... )", 0 );
+        ErrorQuit( "usage: COMPILE_FUNC( <output>, <func>, <name>, "
+                   "<magic1>, <magic2>, ... )", 0, 0 );
     }
     output = ELM_LIST( arg, 1 );
     func   = ELM_LIST( arg, 2 );

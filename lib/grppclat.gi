@@ -452,11 +452,11 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
     #a:=SubgroupNC(Parent(g),List(i,j->Product([1..d],k->pcgs[k]^j[k])));
     asz:=kersz*p^Length(i);
     if kersz=1 then
-      a:=SubgroupNC(par,List(i,j->pcelm(j)));
+      a:=SubgroupNC(par,List(i,pcelm));
     else
-      #a:=ClosureSubgroup(ker,List(i,j->pcelm(j)):knownClosureSize:=asz);
+      #a:=ClosureSubgroup(ker,List(i,pcelm):knownClosureSize:=asz);
       a:=SubgroupNC(par,Concatenation(GeneratorsOfGroup(ker),
-        List(i,j->pcelm(j))));
+        List(i,pcelm)));
     fi;
     SetSize(a,asz);
     Add(new,a);
@@ -614,7 +614,7 @@ local g,        # group
                    IdentityMapping(g));
       IsGroupOfAutomorphismsFiniteGroup(funcs); # set filter
       if IsTrivial( funcs ) then
-        b:=ClosureGroup(Parent(g),List(func,x->ConjugatorOfConjugatorIsomorphism(x)));
+        b:=ClosureGroup(Parent(g),List(func,ConjugatorOfConjugatorIsomorphism));
         func:=hom2;
       else
         if IsSolvableGroup(funcs) then
@@ -661,7 +661,7 @@ local g,        # group
 
 #  # check, if the series is compatible with the AgSeries and if g is a
 #  # parent group. If not, enforce this
-#  if not(IsParent(g) and ForAll(e,i->IsElementAgSeries(i))) then
+#  if not(IsParent(g) and ForAll(e,IsElementAgSeries)) then
 #    Info(InfoPcSubgroup,1,"  computing better series");
 #    isom:=IsomorphismAgGroup(e);
 #    g:=Image(isom,g);
@@ -1267,9 +1267,7 @@ local s,i,c,classes, lattice,map,GI;
     fi;
     Add(classes,c);
   od;
-  Sort(classes,function(a,b)
-                 return Size(Representative(a))<Size(Representative(b));
-               end);
+  SortBy(classes, a -> Size(Representative(a)));
 
   # create the lattice
   lattice:=Objectify(NewType(FamilyObj(classes),IsLatticeSubgroupsRep),
@@ -1295,7 +1293,7 @@ end);
 #        normal:=true));
 #
 #   # sort the normal subgroups according to their size
-#   Sort(n,function(a,b) return Size(a) < Size(b); end);
+#   SortBy(n, Size);
 #
 #   return n;
 # end);

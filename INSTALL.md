@@ -84,7 +84,7 @@ you need to download the GAP source distribution, that is, a file named
 for GAP 4.X.Y. Alternatively, you can also use the `.tar.gz` or `.zip`
 archives.
 
-If you use Windows, then download the `.exe` installer which contains binaries
+If you use Windows, then download the Windows installer which contains binaries
 for GAP and some packages and provides the standard installation procedure.
 
 
@@ -108,24 +108,19 @@ permissions to read the files.)
 Windows
 -------
 
-If you are using the `.exe` installer (which we strongly recommend),
-simply download and run it. It will offer a standard installation
-procedure, during which you will be able to select an installation path.
-
-Note that the path to the GAP directory must not contain spaces.
-For example, you may install it in a directory named like `C:\gap-4.X.Y`
-(default), `D:\gap` or `C:\Math\GAP\my-gap-4.X.Y`, but you must not install
-it in a directory named like `C:\Users\alice\My Documents\gap-4.X.Y` or
-`C:\Program files\gap-4.X.Y` etc.
+If you are using the Windows installer, simply download and run it.
+It will offer a standard installation procedure, during which you will
+be able to select an installation path. You can either install for all
+users, or just the current user.
 
 
 4 Compilation
 =============
 
-For the Windows version the `.exe` installer will already have put
+For the Windows version the installer will already have put
 binaries in place and nothing else needs to be done.
 
-Under Unix you will have to compile such a binary yourself, as described
+Under Unix you will have to compile such a binary yourself as described
 in this section. This also covers macOS, but please first review section
 "GAP for macOS" below for additional information about compilation
 specific to macOS.
@@ -148,7 +143,7 @@ slowing down the compilation process, or omit certain features):
 
 On Ubuntu or Debian, you can install these with the following command:
 
-    sudo apt-get install build-essential autoconf libtool libgmp-dev libreadline-dev zlib1g-dev
+    sudo apt-get install build-essential autoconf libgmp-dev libreadline-dev zlib1g-dev
 
 On macOS, please follow the instructions in section "GAP for macOS" below.
 
@@ -198,10 +193,8 @@ by issuing the two commands
 (note that on BSD systems you have to call `gmake` instead of `make`).
 
 Both will produce a lot of text output. You should end up with an executable
-called `gap` which you can use to start GAP. In addition, there is a shell
-script `bin/gap.sh` which you can copy to a directory that is listed in your
-search path. (This shell script starts the `gap` executable and also passes
-an argument to it that indicates where the GAP library is).
+called `gap` which you can use to start GAP. You can create a symbolic link
+to it in a directory that is listed in your `PATH` environment variable.
 
 macOS users please note that this script must be started from within the
 Terminal Application. It is not possible to start GAP by clicking this
@@ -242,7 +235,7 @@ version of GMP included with the GAP archive you downloaded and this will
 be used if GAP does not find a version of GMP already installed on your
 system. You can configure which GMP GAP uses as follows:
 
-./configure --with-gmp=builtin|PREFIX
+    ./configure --with-gmp=builtin|PREFIX
 
 If this option is *not* given, GAP will try to find a suitable version of GMP
 can be found using the specified CPPFLAGS, CFLAGS and LDFLAGS. If not,
@@ -262,7 +255,8 @@ Readline
 GAP optionally also uses the external library GNU Readline (see
 <https://www.gnu.org/software/readline>) for better command line
 editing. GAP will use this library by default if it is available on
-your system. You can configure Readline use as follows:
+your system. You can specify whether to use GNU Readline or not
+and possibly select an alternate version as follows:
 
     ./configure --with-readline=yes|no|"path"
 
@@ -279,9 +273,9 @@ Build 32-bit vs. 64-bit binaries
 
 GAP will attempt to build in 32-bit mode on 32-bit machines and in 64-bit
 mode on 64-bit machines. On a 64-bit machine, you can tell GAP to build in
-32-bit instead, if you know what you are doing. Note that we recommend *against* doing this
-for regular use, as these days the 64 bit version is much better tested and
-generally faster.
+32-bit instead, if you know what you are doing. Note that we recommend
+*against* doing this for regular use, as these days the 64 bit version is
+much better tested and generally faster.
 
 If you wish to force GAP in 32-bit mode, you can do so by invoking
 
@@ -305,9 +299,7 @@ users (including those on macOS) should type
 
     ./gap
 
-Windows users should start GAP with the batch file
-
-    C:\gap-4.X.Y\bin\gap.bat
+Windows users should start GAP using the GAP icon in the start menu.
 
 GAP should start up with its banner and after a little while give you a
 command prompt
@@ -329,26 +321,12 @@ Try a few commands to see if the compilation succeeded.
     [ 29, 101, 281, 9901, 226549, 121499449, 4458192223320340849 ]
 
 If you get the error message `hmm, I cannot find lib/init.g` you are likely
-to have installed only the binary (or used the wrong path on Windows).
+to have installed only the binary (or have a broken installation on Windows).
 
 If GAP starts but you get error messages for the commands you issued, the
 files in the `lib` directory are likely to be corrupt or incomplete. Make
 sure that you used the proper archive and that extraction proceeded without
 errors.
-
-Especially try the command line editing and history facilities, because
-they are probably the most machine dependent feature of GAP. Enter a few
-commands and then make sure that `Ctrl-P` redisplays the last command, that
-`Ctrl-E` moves the cursor to the end of the line, that `Ctrl-B` moves the
-cursor back one character, and that `Ctrl-D` deletes single characters. So,
-after entering the above commands, typing
-
-    Ctrl-P  Ctrl-E  Ctrl-B  Ctrl-B  Ctrl-B  Ctrl-B  Ctrl-D  2  Return
-
-should give the following lines:
-
-    gap> Factors( 10^42 + 2 );
-    [ 2, 3, 433, 953, 128400049, 3145594690908701990242740067 ]
 
 If you want to run a quick test of your GAP installation (though this is
 not required), you can read in a test script that exercises some GAP's
@@ -384,11 +362,6 @@ performing all tests from the `tst` directory.
 It takes significantly longer to complete than `testinstall.g`,
 but otherwise produces output similar to the `testinstall.g` test.
 
-Windows users should note that the Command Prompt user interface provided
-by Microsoft might not offer history scrolling or cut and paste with the
-mouse. To get a better environment, use the script `gap.bat` to start GAP
-instead of `gapcmd.bat`.
-
 
 7 Packages
 ==========
@@ -398,9 +371,8 @@ redistribute in the `gap-4.X.Y/pkg` directory, and for packages that consist
 only of GAP code no further installation is necessary.
 
 Some packages however contain external binaries that will require separate
-compilation. (If you use Windows you may not be able to use external
-binaries anyhow, except for those packages whose binaries for Windows are
-included in their distribution, so you may skip the rest of this section.)
+compilation. (If you use the Windows installer these binaries are already
+compiled for you, so you may skip the rest of this section.)
 You can skip this compilation now and do it later -- GAP will work fine,
 but the capabilities of the affected packages won't be available.
 
@@ -420,7 +392,7 @@ many libraries, headers and tools available. To use it, change to the
     ../bin/BuildPackages.sh
 
 If you have problems with package installations please contact the package
-authors as listed in the packages README file. Many GAP packages have their
+authors as listed in the packages `README` file. Many GAP packages have their
 own development repositories and issue trackers, details of which could be
 found at <https://gap-packages.github.io/>.
 
@@ -430,17 +402,13 @@ found at <https://gap-packages.github.io/>.
 
 Congratulations, your installation is finished.
 
-Once the installation is complete, we would like to ask you to send us a
-short note to <support@gap-system.org>, telling us about the installation.
-(This is just a courtesy; we like to know how many people are using GAP and
-get feedback regarding difficulties (hopefully none) that users may have
-had with installation.)
-
-We also suggest that you subscribe to our GAP Forum mailing list; see the
-GAP web pages for details. Whenever there is a bug fix or new release of
-GAP this is where it is announced. The GAP Forum also deals with user
-questions of a general nature; bug reports and other problems you have
-while installing and/or using GAP should be sent to <support@gap-system.org>.
+Once the installation is complete, you may wish to subscribe to the
+[GAP forum mailing list](https://www.gap-system.org/Contacts/Forum/forum.html),
+which provides help with user questions of a general nature. You can also
+chat with us on [Slack](https://gap-system.org/slack). Bug reports and other
+problems you have while installing and/or using GAP should be reported via
+our [issue tracker](https://github.com/gap-system/gap/issues) or sent via
+email to <support@gap-system.org>.
 
 If you are new to GAP, you might want to read through the following two
 sections for information about the documentation.
@@ -462,7 +430,7 @@ There also is (if installed) an HTML version of some books that can be
 viewed with an HTML browser, see Section "Changing the Help Viewer" of the
 GAP Reference manual.
 
-The manual is also available in pdf format. In the full distribution these
+The manual is also available in PDF format. In the full distribution these
 files are included in the directory `gap-4.X.Y/doc` in the subdirectories
 `tut` (a beginner's tutorial), `ref` (the reference manual), and `hpc` (HPC-GAP
 reference manual).
@@ -493,11 +461,9 @@ their remedies. Also see the FAQ list on the GAP web pages at
 
 ### GAP starts with a warning `hmm, I cannot find lib/init.g`
 
-This means that GAP cannot find its library. That can happen if you are using
-the shell script `gap.sh` respectively the batch file `gap.bat` but have moved
-the GAP home directory since you compiled GAP. To fix this, you can edit the
-shell script/batch file to give the correct library path. You must start the
-binary with the command line option
+This means that GAP cannot find its library. That can happen if you copied or
+moved the `gap` executable out of its original directory. You may be able
+to fix this by passing it the command line option
 
     -l <path>
 
@@ -537,13 +503,6 @@ which can reduce this limit even further.
 
 We therefore recommend to always build and use GAP in 64-bit mode.
 
-### Recompilation fails or the new binary crashes.
-
-Call `make clean` and restart the `configure` / `make` process completely from
-scratch. (It is possible that the operating system and/or compiler got
-upgraded in the meantime and so the existing .o files cannot be used any
-longer.
-
 ### A calculation runs into an error `no method found`.
 
 GAP is not able to execute a certain operation with the given arguments.
@@ -562,28 +521,26 @@ This is a problem if you are running a keyboard driver for some non-english
 languages. These drivers catch the ^ character to produce the French circumflex
 accent and do not pass it properly to GAP. For macOS users, as a workaround
 please refer to the section "GAP for macOS" below for information on
-how to install readline and section 5 on how to recompile GAP, for windows no
+how to install readline and section 5 on how to recompile GAP, for Windows no
 fix is known. (One can type `POW(a,b)` for `a^b`.)
 
 ## Problems specific to Windows
 
-### Cut and Paste does not work
+Rather than use the Windows installer, another option is to use the
+"Windows Subsystem for Linux" (<https://learn.microsoft.com/en-us/windows/wsl/install>),
+also known as WSL. This can be found in the "Microsoft Store" in Windows,
+where you will find installers for a selection of Linux distributions (Ubuntu
+is the standard, and best supported). After installing a linux distribution you
+can then follow the guidance for building and using GAP in Linux inside WSL.
 
-You might want to try different shells, using both of the two `.bat`
-files in the `bin` directory: `gap.bat` and `gapcmd.bat`. Also,
-<https://www.gap-system.org/Faq/faq.html#4> might give a remedy.
+The main advantage of using WSL is that the Windows installer does not support
+adding new packages which require compiling kernel modules. Also, GAP is
+slightly faster in WSL.
 
-### GAP does not work in the remote desktop
-
-GAP cannot be started in the Windows Command Prompt shell (via `gapcmd.bat`)
-in the remote desktop. To start GAP in the remote desktop, use the script
-`gap.bat` which should work in such setting.
-
-### You get an error message about the `cygwin1.dll`
-
-GAP comes with a version of this dynamic library. If you have another
-version installed (use "Find"), delete the older one (and probably copy the
-newer one in both places).
+We also support building GAP using 'Cygwin', which is a Unix wrapper for
+Windows. Cygwin is used for making Windows release. Almost all packages are
+supported in the Windows releases. By default the Windows release reads and
+writes files from the user's "Documents" directory.
 
 ### Something else went wrong
 

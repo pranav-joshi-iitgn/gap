@@ -2162,7 +2162,7 @@ function( G )
     spec := SpecialPcgs( G );
     weights := LGWeights( spec );
     primes := Set( weights, x -> x[3] );
-    comp := List( primes, x -> false );
+    comp := List( primes, ReturnFalse );
     for i in [1..Length( primes )] do
         gens := spec{Filtered( [1..Length(spec)],
                      x -> weights[x][3] <> primes[i] )};
@@ -2189,7 +2189,7 @@ function( G )
     spec := SpecialPcgs( G );
     weights := LGWeights( spec );
     primes := Set( weights, x -> x[3] );
-    comp := List( primes, x -> false );
+    comp := List( primes, ReturnFalse );
     for i in [1..Length( primes )] do
         gens := spec{Filtered( [1..Length(spec)],
                            x -> weights[x][3] = primes[i] )};
@@ -2220,7 +2220,7 @@ function( G )
     weights := LGWeights( spec );
     primes := Set( weights, x -> x[3] );
     pis    := Combinations( primes );
-    comp   := List( pis, x -> false );
+    comp   := List( pis, ReturnFalse );
     for i in [1..Length( pis )] do
         gens := spec{Filtered( [1..Length(spec)],
                            x -> weights[x][3] in pis[i] )};
@@ -5146,7 +5146,7 @@ local nrm;        # normal subgroups of <G>,result
     nrm:=NormalSubgroupsAbove(G,TrivialSubgroup(G),[]);
 
     # sort the normal subgroups according to their size
-    Sort(nrm,function(a,b) return Size(a) < Size(b); end);
+    SortBy(nrm, Size);
 
     # and return it
     return nrm;
@@ -5425,10 +5425,10 @@ end);
 
 #############################################################################
 ##
-#F  PowerMapOfGroupWithInvariants( <G>, <n>, <ccl>, <invariants> )
+#F  PowerMapOfGroupWithInvariants( <n>, <ccl>, <invariants> )
 ##
 InstallGlobalFunction( PowerMapOfGroupWithInvariants,
-    function( G, n, ccl, invariants )
+    function( n, ccl, invariants )
 
     local reps,      # list of representatives
           ord,       # list of representative orders
@@ -5523,7 +5523,7 @@ InstallMethod( PowerMapOfGroup,
     "method for a group",
     [ IsGroup, IsInt, IsHomogeneousList ],
     function( G, n, ccl )
-    return PowerMapOfGroupWithInvariants( G, n, ccl, [] );
+    return PowerMapOfGroupWithInvariants( n, ccl, [] );
     end );
 
 
@@ -5537,7 +5537,7 @@ InstallMethod( PowerMapOfGroup,
     "method for a permutation group",
     [ IsGroup and IsPermCollection, IsInt, IsHomogeneousList ],
     function( G, n, ccl )
-    return PowerMapOfGroupWithInvariants( G, n, ccl, [CycleStructurePerm] );
+    return PowerMapOfGroupWithInvariants( n, ccl, [CycleStructurePerm] );
     end );
 
 
@@ -5551,7 +5551,7 @@ InstallMethod( PowerMapOfGroup,
     "method for a matrix group",
     [ IsGroup and IsRingElementCollCollColl, IsInt, IsHomogeneousList ],
     function( G, n, ccl )
-    return PowerMapOfGroupWithInvariants( G, n, ccl, [ TraceMat ] );
+    return PowerMapOfGroupWithInvariants( n, ccl, [ TraceMat ] );
     end );
 
 
@@ -5571,10 +5571,7 @@ function(G,l)
 end);
 
 InstallOtherMethod( KnowsHowToDecompose,"trivial group",true,
-  [IsGroup,IsEmpty],
-function(G,l)
-  return true;
-end);
+  [IsGroup,IsEmpty], ReturnTrue);
 
 InstallMethod( KnowsHowToDecompose,
     "group: use GeneratorsOfGroup",

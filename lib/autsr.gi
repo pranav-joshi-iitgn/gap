@@ -695,6 +695,55 @@ local fp,n,pat,pools,i,sel;
   return pools;
 end);
 
+# form a characterististic series through radical with elab factors
+BindGlobal("AGSRCharacteristicSeries",function(G,r)
+local somechar,d,i,j,u,v;
+  d:=Filtered(StructuralSeriesOfGroup(G),x->IsSubset(r,x));
+  # refine
+  d:=RefinedSubnormalSeries(d,Centre(G));
+  d:=RefinedSubnormalSeries(d,Centre(r));
+  somechar:=ValueOption("someCharacteristics");
+  if somechar<>fail then
+    if IsRecord(somechar) then
+      somechar:=somechar.subgroups;
+    fi;
+    for i in somechar do
+      d:=RefinedSubnormalSeries(d,i);
+    od;
+  fi;
+
+  for i in PrimeDivisors(Size(r)) do
+    u:=PCore(r,i);
+    if Size(u)>1 then
+      d:=RefinedSubnormalSeries(d,u);
+      j:=1;
+      repeat
+        v:=Agemo(u,i,j);
+        if Size(v)>1 then
+          d:=RefinedSubnormalSeries(d,v);
+        fi;
+        j:=j+1;
+      until Size(v)=1;
+      j:=1;
+      repeat
+        if Size(u)>=2^24 then
+          v:=u; # bail out as method for `Omega` will do so.
+        else
+          v:=Omega(u,i,j);
+          if Size(v)<Size(u) then
+            d:=RefinedSubnormalSeries(d,v);
+          fi;
+          j:=j+1;
+        fi;
+
+      until Size(v)=Size(u);
+    fi;
+
+  od;
+  Assert(1,ForAll([1..Length(d)-1],x->Size(d[x])<>Size(d[x+1])));
+  return d;
+end);
+
 # main automorphism method -- currently still using factor groups, but
 # nevertheless faster..
 
@@ -814,62 +863,29 @@ local ff,r,d,ser,u,v,i,j,k,p,bd,e,gens,lhom,M,N,hom,Q,Mim,q,ocr,split,MPcgs,
   ff:=FittingFreeLiftSetup(G);
   r:=ff.radical;
   rlgf:=LGFirst(SpecialPcgs(r));
+
+
   # find series through r
+  somechar:=ValueOption("someCharacteristics");
 
   # derived and then primes and then elementary abelian
   d:=ValueOption("series");
   if d=fail then
-    d:=Filtered(StructuralSeriesOfGroup(G),x->IsSubset(r,x));
-    # refine
-    d:=RefinedSubnormalSeries(d,Centre(G));
-    d:=RefinedSubnormalSeries(d,Centre(r));
-    scharorb:=fail;
-    somechar:=ValueOption("someCharacteristics");
-    if somechar<>fail then
-      if IsRecord(somechar) then
-        if IsBound(somechar.orbits) then
-          scharorb:=somechar.orbits;
-        fi;
-        somechar:=somechar.subgroups;
-      fi;
-      for i in somechar do
-        d:=RefinedSubnormalSeries(d,i);
-      od;
-    fi;
-    for i in PrimeDivisors(Size(r)) do
-      u:=PCore(r,i);
-      if Size(u)>1 then
-        d:=RefinedSubnormalSeries(d,u);
-        j:=1;
-        repeat
-          v:=Agemo(u,i,j);
-          if Size(v)>1 then
-            d:=RefinedSubnormalSeries(d,v);
-          fi;
-          j:=j+1;
-        until Size(v)=1;
-        j:=1;
-        repeat
-          if Size(u)>=2^24 then
-            v:=u; # bail out as method for `Omega` will do so.
-          else
-            v:=Omega(u,i,j);
-            if Size(v)<Size(u) then
-              d:=RefinedSubnormalSeries(d,v);
-            fi;
-            j:=j+1;
-          fi;
-
-        until Size(v)=Size(u);
-      fi;
-
-    od;
-    Assert(1,ForAll([1..Length(d)-1],x->Size(d[x])<>Size(d[x+1])));
-
+    d:=AGSRCharacteristicSeries(G,r:someCharacteristics:=somechar);
     d:=Reversed(d);
   else
     d:=ShallowCopy(d);
     SortBy(d,Size); # in case reversed order....
+  fi;
+
+  scharorb:=fail;
+  if somechar<>fail then
+    if IsRecord(somechar) then
+      if IsBound(somechar.orbits) then
+        scharorb:=somechar.orbits;
+      fi;
+      somechar:=somechar.subgroups;
+    fi;
   fi;
 
   # now go up in series if elementary abelian to avoid too many tiny steps
@@ -1543,7 +1559,7 @@ end);
 # find corresponding characteristic subgroups
 BindGlobal("AGSRMatchedCharacteristics",function(g,h)
 local a,props,cg,ch,clg,clh,ng,nh,coug,couh,pg,ph,i,j,stop,coinc;
-  props:=function(a,chars)
+  props:=function(a)
   local p,b;
 
     if ID_AVAILABLE(Size(a))<>fail then
@@ -1601,8 +1617,8 @@ local a,props,cg,ch,clg,clh,ng,nh,coug,couh,pg,ph,i,j,stop,coinc;
   SortBy(cg,x->-Size(x));
   SortBy(ch,x->-Size(x));
 
-  pg:=List(cg,x->props(x,ng));
-  ph:=List(ch,x->props(x,nh));
+  pg:=List(cg,props);
+  ph:=List(ch,props);
   if Collected(pg)<>Collected(ph) then return fail;fi;
 
   stop:=false;

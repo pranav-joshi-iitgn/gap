@@ -239,7 +239,7 @@ function( D )
 
     list := DirectProductInfo( D ).groups;
 
-    if ForAll (list, G -> IsPGroup(G)) then
+    if ForAll(list, IsPGroup) then
         p := fail;
         for G in list do
             if not IsTrivial (G) then
@@ -357,7 +357,7 @@ InstallGlobalFunction (PcgsDirectProduct,
         rels := [];
         pcgs := [];
         indices := [];
-        one := List( info.groups, x -> One(x) );
+        one := List( info.groups, One );
         offset := 0;
         for i in [1..Length(info.groups)] do
             pcgs[i] := pcgsop ( info.groups[i] );
@@ -1139,10 +1139,7 @@ end);
 ##
 InstallMethod( \in,"generic wreath product", IsCollsElms,
   [ IsGroup and HasWreathProductInfo and IsWreathProductElementCollection
-    and IsWholeFamily, IsWreathProductElement ], 0,
-function(G,e)
-  return true;
-end);
+    and IsWholeFamily, IsWreathProductElement ], 0, ReturnTrue);
 
 #
 # semidirect product

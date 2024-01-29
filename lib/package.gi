@@ -2078,7 +2078,7 @@ InstallGlobalFunction( GAPDocManualLabFromSixFile,
         return "";
       fi;
       while list[ Length( list ) ] = 0 do
-        Unbind( list[ Length( list ) ] );
+        Remove( list );
       od;
       return JoinStringsWithSeparator( List( list, String ), "." );
     end;
@@ -2267,7 +2267,7 @@ InstallGlobalFunction( ValidatePackageInfo, function( info )
     #   Info( InfoPackageLoading, 2, Concatenation( record.PackageName, ": Please be advised to change the date format to `yyyy-mm-dd`") );
     #fi;
 
-    TestOption( record, "License",
+    TestMandat( record, "License",
         x -> IsString(x) and 0 < Length(x),
         "a nonempty string containing an SPDX ID" );
     TestMandat( record, "ArchiveURL", IsURL, "a string started with http://, https:// or ftp://" );
@@ -3167,7 +3167,6 @@ InstallGlobalFunction( PackageVariablesInfo, function( pkgname, version )
     # Save the relevant global variables, and replace them.
     GAPInfo.data:= rec( userGVars:= NamesUserGVars(),
                         varsThisPackage:= [],
-                        revision_components:= [],
                         pkgpath:= test,
                         pkgname:= pkgname );
 
@@ -3202,7 +3201,7 @@ InstallGlobalFunction( PackageVariablesInfo, function( pkgname, version )
     UnbindGlobal( "ReadPackage" );
     localBindGlobal( "ReadPackage",
         function( arg )
-        local pos, pkgname, before, cbefore, res, after, cafter;
+        local pos, pkgname, before, res, after;
         if Length( arg ) = 1 then
           pos:= Position( arg[1], '/' );
           pkgname:= LowercaseString( arg[1]{[ 1 .. pos - 1 ]} );
@@ -3213,20 +3212,12 @@ InstallGlobalFunction( PackageVariablesInfo, function( pkgname, version )
         fi;
         if pkgname = GAPInfo.data.pkgname then
           before:= NamesUserGVars();
-          if IsBoundGlobal( "Revision" ) then
-            cbefore:= RecNames( ValueGlobal( "Revision" ) );
-          fi;
         fi;
         res:= CallFuncList( GAPInfo.data.ReadPackage, arg );
         if pkgname = GAPInfo.data.pkgname then
           after:= NamesUserGVars();
           UniteSet( GAPInfo.data.varsThisPackage,
             Filtered( Difference( after, before ), IsBoundGlobal ) );
-          if IsBoundGlobal( "Revision" ) then
-            cafter:= RecNames( ValueGlobal( "Revision" ) );
-            UniteSet( GAPInfo.data.revision_components,
-              Difference( cafter, cbefore ) );
-          fi;
         fi;
         return res;
         end );
@@ -3383,13 +3374,6 @@ InstallGlobalFunction( PackageVariablesInfo, function( pkgname, version )
                            nam -> [ [ nam, args( ValueGlobal( nam ) ),
                                       docmark( nam ) ],
                                     guesssource( nam ) ] ) ] );
-    fi;
-
-    # Have new components been added to `Revision'?
-    if not IsEmpty( GAPInfo.data.revision_components ) then
-      Add( result, [ "new components of the outdated 'Revision' record",
-                     List( GAPInfo.data.revision_components,
-                           x -> [ [ x, "", "" ], [ fail, fail ] ] ) ] );
     fi;
 
     # Delete the auxiliary component from `GAPInfo'.

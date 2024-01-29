@@ -10,7 +10,9 @@ on:
   workflow_dispatch:
   pull_request:
   push:
-    tags: v[1-9]+.[0-9]+.[0-9]+
+    tags:
+      - v[1-9]+.[0-9]+.[0-9]    # allow v1.2.3
+      - v[1-9]+.[0-9]+.[0-9]-*  # allow v1.2.3-beta3 etc.
     branches:
       - master
       - stable-*
@@ -38,7 +40,7 @@ jobs:
       gap-build-version: ${{ steps.get-build.outputs.name }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,7 +57,7 @@ jobs:
           git fetch --tags --force
 
       - name: "Set up Python"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
       - name: "Install Python modules"
@@ -97,14 +99,14 @@ jobs:
       - name: "Test 'make install' from the primary release archive"
         run: |
           pushd test-gap-tarball/gap*
-          GAPPREFIX=/tmp/gapprefix TEST_SUITES="testmakeinstall" ../../dev/ci.sh
+          ../../dev/ci.sh testmakeinstall
           popd
 
       # Upload the main GAP .tar.gz file (which includes packages).
       #
       # Warning: the result is a single .zip file (so things are compressed twice).
       - name: "Upload GAP tarball"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: gap
@@ -113,7 +115,7 @@ jobs:
 
       # Always upload metadata, and keep longer, since it is much smaller.
       - name: "Upload JSON metadata"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: "JSON metadata"
@@ -144,14 +146,14 @@ jobs:
       # The GAP to be wrapped is put into gap-$GAP_VERSION/
       # The gap-windows script requires the GAP directory to be named this way.
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.9
 
       # Download the artifact -- for an actual release, this contains the
       # exact same tarball as was uploaded to the release as an asset
       - name: "Download GAP archive from previous job"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: gap
 
@@ -162,7 +164,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Clone the Windows installer maker scripts"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: gap-system/gap-windows
           ref: main
@@ -194,7 +196,7 @@ jobs:
       # Artifacts live for 1 day, i.e. until the next cron job runs.
       - name: "Upload the installer as an artifact"
         if: ${{ github.event_name == 'schedule' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: gap-${{ env.GAP_VERSION }}-x86_64.exe

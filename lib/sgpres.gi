@@ -2899,8 +2899,7 @@ local ded,offset,pair,alpha,x,p,w;
   offset:=DATA.offset;
   p:=DATA.p;
   while Length(ded)>0 do
-    pair:=ded[Length(ded)];
-    Unbind(ded[Length(ded)]);
+    pair:=Remove(ded);
     alpha:=pair[1];x:=pair[2];
     if p[alpha]=alpha then
       for w in DATA.ccr[x+offset] do
@@ -2971,7 +2970,7 @@ local m,offset,rels,ri,ccr,i,r,ct,A,a,w,n,DATA,p,dr,
       fi;
     fi;
   od;
-  ri:=Filtered(ri,x->IsBound(x));
+  ri:=Compacted(ri);
 
 
   # cyclic conjugates, sort by first letter
@@ -3554,8 +3553,7 @@ local DATA,rels,i,j,w,f,r,s,fam,ri,a,offset,rset,re,stack,pres,
         if Length(r)>0 then
           Add(stack,r);
           while Length(stack)>0 do
-            r:=stack[Length(stack)];
-            Unbind(stack[Length(stack)]);
+            r:=Remove(stack);
             ri:=-Reversed(r);
             rset:=Set([r,ri]);
             # reduce others

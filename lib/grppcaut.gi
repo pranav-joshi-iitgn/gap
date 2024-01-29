@@ -480,7 +480,7 @@ local spec,s,n,M,
             Add( part[pos], i );
         fi;
     od;
-    Sort( part, function( x, y ) return Length(x) < Length(y); end );
+    SortBy( part, Length );
 
     # compute partition stabilizer
     if Length(part) > 1 then
@@ -682,7 +682,7 @@ BindGlobal( "LiftInduciblePair", function( epi, ind, M, weight )
     relsP := RelatorsOfFpGroup( P );
     l := Length( relsP );
 
-    E := List( [1..n*d], x -> List( [1..l*d], y -> true ) );
+    E := List( [1..n*d], x -> List( [1..l*d], ReturnTrue ) );
     v := [];
     for k in [1..l] do
         rel := relsP[k];
@@ -1621,7 +1621,7 @@ InstallGlobalFunction(AutomorphismGroupNilpotentGroup,function(G)
     autS := List(S, AutomorphismGroup);
 
     # Compute automorphism group for G from this
-    gens := Concatenation(List(S, P->Pcgs(P)));
+    gens := Concatenation(List(S, Pcgs));
     off := 0;
     gensAutG := [];
     for i in [1..Length(S)] do

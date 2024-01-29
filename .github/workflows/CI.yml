@@ -53,7 +53,7 @@ jobs:
             "testmanuals",
 
             # test error reporting and compiling as well as libgap
-            "testexpect testmockpkg testspecial test-compile testlibgap testkernel",
+            "testexpect testmockpkg testspecial test-compile testlibgap testkernel testworkspace",
 
             # compile packages and run GAP tests
             # don't use --enable-debug to prevent the tests from taking too long
@@ -70,7 +70,7 @@ jobs:
           - os: ubuntu-latest
             shell: bash
             test-suites: "makemanuals testmakeinstall"
-            extra: "GAPPREFIX=/tmp/gapprefix CONFIGFLAGS=\"--prefix=/tmp/gapprefix\" NO_COVERAGE=1"
+            extra: "CONFIGFLAGS=\"--prefix=/tmp/gapprefix\" NO_COVERAGE=1"
 
           - os: ubuntu-20.04
             shell: bash
@@ -144,10 +144,10 @@ jobs:
       TEST_SUITES: ${{ matrix.test-suites }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "Set up Python"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
 
@@ -254,10 +254,10 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
       - name: "Run tests"
-        run: ${{ matrix.extra }} dev/ci.sh
+        run: ${{ matrix.extra }} dev/ci.sh ${{ matrix.test-suites }}
       - name: "Upload pdf manuals"
-        if: ${{ matrix.test-suites == 'makemanuals' }}
-        uses: actions/upload-artifact@v3
+        if: ${{ contains(matrix.test-suites, 'makemanuals') }}
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: manuals-pdf
@@ -267,8 +267,8 @@ jobs:
             doc/ref/manual.pdf
             doc/tut/manual.pdf
       - name: "Upload html manuals"
-        if: ${{ matrix.test-suites == 'makemanuals' }}
-        uses: actions/upload-artifact@v3
+        if: ${{ contains(matrix.test-suites, 'makemanuals') }}
+        uses: actions/upload-artifact@v4
         with:
           if-no-files-found: error
           name: manuals-html

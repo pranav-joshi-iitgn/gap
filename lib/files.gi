@@ -369,12 +369,13 @@ InstallGlobalFunction(RemoveDirectoryRecursively,
   function(dirname)
     # dirname must be a string
     local Dowork;
-    if not(IsDir(dirname) = 'D') then
+    if not IS_DIR(dirname) then
         Error("dirname must be a directory");
         return fail;
     fi;
-    while Length(dirname) > 0 and dirname[Length(dirname)] = '/' do
-        Unbind(dirname[Length(dirname)]);
+    dirname := ShallowCopy(dirname);
+    while Length(dirname) > 0 and Last(dirname) = '/' do
+        Remove(dirname);
     od;
     if Length(dirname) = 0 then
         Error("dirname must be nonempty");
@@ -382,13 +383,12 @@ InstallGlobalFunction(RemoveDirectoryRecursively,
     fi;
     Dowork := function(pathname)
       # pathname does not end in a / and is known to be a proper directory
-      local c,f,fullname,what;
+      local c,f,fullname;
       c := DirectoryContents(pathname);
       for f in c do
           if f <> "." and f <> ".." then
               fullname := Concatenation(pathname,"/",f);
-              what := IsDir(fullname);
-              if what = 'D' then
+              if IS_DIR(fullname) then
                   Dowork(fullname);
               else
                   RemoveFile(fullname);

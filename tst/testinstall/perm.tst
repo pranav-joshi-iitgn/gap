@@ -26,6 +26,13 @@ gap> (1,2)(1,2);
 Error, Permutation: cycles must be disjoint and duplicate-free
 gap> (1,2,3,2);
 Error, Permutation: cycles must be disjoint and duplicate-free
+gap> (1,2^80);
+Error, Permutation: <expr> must be a positive small integer (not a large posit\
+ive integer)
+#@if 8*GAPInfo.BytesPerVariable = 64
+gap> (1,2^40);
+Error, Permutation literal exceeds maximum permutation degree
+#@fi
 
 # The GAP kernel implements many functions in multiple variants, e.g. to
 # compare permutations for equality, there are actually four functions in the
@@ -278,6 +285,54 @@ gap> SetX(permAll, permAll, {a,b} -> Comm(a,b) = LeftQuotient((b*a), a*b));
 
 # gap> SetX(permAll, permAll, {a,b} -> a * Comm(a,b) = a^b);
 # [ true ]
+
+#
+# ListPerm
+#
+gap> p := ();
+()
+gap> ListPerm( p );
+[  ]
+gap> List([-1,0,1,5], n -> ListPerm( p, n ));
+[ [  ], [  ], [ 1 ], [ 1, 2, 3, 4, 5 ] ]
+
+#
+gap> p := (1,100) / (1,100);
+()
+gap> ListPerm( p );
+[  ]
+gap> List([-1,0,1,5], n -> ListPerm( p, n ));
+[ [  ], [  ], [ 1 ], [ 1, 2, 3, 4, 5 ] ]
+
+#
+gap> p := (1,2^17) / (1,2^17);
+()
+gap> ListPerm( p );
+[  ]
+gap> List([-1,0,1,5], n -> ListPerm( p, n ));
+[ [  ], [  ], [ 1 ], [ 1, 2, 3, 4, 5 ] ]
+
+#
+gap> p := (1,2,3);
+(1,2,3)
+gap> ListPerm( p );
+[ 2, 3, 1 ]
+gap> List([-1,0,1,5], n -> ListPerm( p, n ));
+[ [  ], [  ], [ 2 ], [ 2, 3, 1, 4, 5 ] ]
+
+#
+gap> p := (1,2,3,10000)*(1,10000);
+(1,2,3)
+gap> ListPerm( p );
+[ 2, 3, 1 ]
+gap> List([-1,0,1,5], n -> ListPerm( p, n ));
+[ [  ], [  ], [ 2 ], [ 2, 3, 1, 4, 5 ] ]
+
+#
+gap> ListPerm( 1 );
+Error, ListPerm: <perm> must be a permutation (not the integer 1)
+gap> ListPerm( (1,2,3), "bla" );
+Error, ListPerm: <n> must be a small integer (not a list (string))
 
 #
 # PermList

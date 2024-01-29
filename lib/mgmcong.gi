@@ -468,7 +468,7 @@ BindGlobal("MagmaCongruencePartition",
         ##   equivalence
         ##
         C := List(Filtered(GeneratingPairsOfMagmaCongruence(cong),
-                 x->not x[1]=x[2]), y->ShallowCopy(y));
+                 x->not x[1]=x[2]), ShallowCopy);
 
         if IsEmpty(C) then
             SetEquivalenceRelationPartition(cong,[]);
@@ -487,7 +487,7 @@ BindGlobal("MagmaCongruencePartition",
         else
             equivrel := EquivalenceRelationPartition(
                             EquivalenceRelationByPairsNC(Source(cong),C));
-            forest := List(equivrel, x->ShallowCopy(x));
+            forest := List(equivrel, ShallowCopy);
         fi;
 
         ## Check partial closure might be fulfilled by initial closure
@@ -587,9 +587,8 @@ BindGlobal("MagmaCongruencePartition",
 
                             ## No holes are left is at the end otherwise
                             ##    move the last one into the middle
-                            if not p2=Length(forest) then
-                                forest[p2]:=forest[Length(forest)];
-                                Unbind(forest[Length(forest)]);
+                            if p2<Length(forest) then
+                                forest[p2]:=Remove(forest);
                             fi;
 
                         ## Simple cases of merging a new element with
@@ -647,9 +646,8 @@ BindGlobal("MagmaCongruencePartition",
                                and not p1=p2 then
                             Append(forest[p1],forest[p2]);
                             Unbind(forest[p2]);
-                            if not p2=Length(forest) then
-                                forest[p2]:=forest[Length(forest)];
-                                Unbind(forest[Length(forest)]);
+                            if p2<Length(forest) then
+                                forest[p2]:=Remove(forest);
                             fi;
                         elif p1<=Length(forest) and not p2<=Length(forest) then
                             Add(forest[p1],r2);
